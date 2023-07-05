@@ -1,0 +1,11 @@
+*.ps
+*.log
+*.aux
+*.out
+*.dvi
+*.bbl
+*.blg
+*.pdf
+*.toc
+.idea/
+__pycache__

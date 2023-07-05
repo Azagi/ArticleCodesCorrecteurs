@@ -1,0 +1,71 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.5cm]{geometry} % marge de la page
+\usepackage{titlesec}
+\usepackage{xcolor}
+\titleformat*{\section}{\fontsize{14}{15}\bfseries\selectfont}
+\titleformat*{\subsection}{\fontsize{13}{15}\bfseries\selectfont}
+\titleformat*{\subsubsection}{\normalfont\normalsize\bfseries\selectfont}
+\titleformat*{\paragraph}{\normalfont\normalsize\bfseries\selectfont}
+
+\titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
+
+\title{\vspace{-36pt}Code correcteur - Plan}
+\author{G2S14 \small(\textcolor{orange}{Isabelle LIN}, \textcolor{cyan}{Filip SUDOL} et \textcolor{violet}{Hocine HAMMOUCHE})\vspace{-4cm}}
+\date{}
+
+\begin{document}
+	\maketitle
+	\color{violet}
+	\section*{\vspace{-16pt}Introdution/problématique}
+		\begin{itemize}
+			\item Problème possible lors de la transmission de messages / communication
+			\item Solution possible : la redondance → introduction au code correcteur
+		\end{itemize}
+	\color{orange}
+	\section{Code correcteur}
+		\subsection{Code de parité}
+			\subsubsection{Parité simple}
+			Présentation des propriétés des codes à parité simple et exemple
+			\subsubsection{Parité double}
+			Présentation des propriétés des codes à parité double (différences avec parité simple) et exemple
+	\color{violet}		
+	\section{Somme de contrôle}
+		Définition, utilisation et exemple
+	\color{cyan}	
+	\section{Application : Code de Hamming}
+		\subsection{Notions importantes et illustrations}
+			\begin{itemize}
+				\item Nombre de bit nécessaire pour encoder un ensemble de mots
+				\item Poids de Hamming : $w_{H}(mot)$
+				\item Distance de Hamming $d_{H}$
+				\item Distance minimale $d_{min}$
+					\begin{itemize}
+						\item Si $d_{min} = k + 1$ alors peut détecter k erreurs.
+						\item Si $d_{min} = 2 \times k + 1$ alors peut corriger k erreurs.
+					\end{itemize}
+			\end{itemize}	
+		\subsection{Nombre minimum de bits de contrôle nécessaires pour détecter/corriger k erreurs lors de la transmission d’une information de m bits}
+		Démonstration avec Borne de Hamming
+		\color{orange}
+		\subsection{Application}
+			\subsubsection{Hamming (7, 4)}
+			Description du code de Hamming (7, 4) et exemple de codage et décodage
+			\subsubsection{Hamming (15, 11)}
+			Description du code de Hamming (15, 11) et exemple de codage et décodage
+	\color{violet}
+	\section*{\vspace{6pt}Conclusion}
+	
+	\color{black}
+	\section*{Annexe}
+	\subsection*{Impémentation du code de Hamming}
+		Une application graphique en Python qui permet à l'utilisateur de rentrer du texte et l'encode en binaire avec les bits de parité nécessaire et de décoder un texte.
+
+		Un jeu qui consiste à retrouver le bit erroné dans une matrice correspondant à un code de Hamming. Le programme affiche un tableau de dimension 4 par 4, l'utilisateur sélectionne les bits dans l'ordre et les marque comme correcte ou incorrecte et à la fin il peut vérifier sa réponse.
+
+	\section*{Références}
+\end{document}

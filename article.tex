@@ -1,0 +1,295 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.9cm]{geometry} % marge de la page
+\usepackage{times}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{array}
+\usepackage{hyperref} % url
+\usepackage{circuitikz}
+\usepackage{tikz}
+\usepackage{pifont}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+
+\title{Code correcteur}
+\author{G2S14 - \small Isabelle LIN, Filip SUDOL et Hocine HAMMOUCHE}
+\date{\today}
+
+% Quelque définition pour le diagrame
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{rect} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{trap} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\begin{document}
+	\maketitle
+
+	\begin{abstract} % Résumer de l'article
+	\end{abstract}
+
+	\tableofcontents
+	\newpage
+
+	\section{Introduction}
+	La transmission de données a pris de nombreuses formes à travers l'histoire
+	en passant de lettres transportées par des cavaliers jusqu'à arriver à des
+	bits transportés par des câbles ou des ondes radio. On peut décomposer la
+	transmission de données en plusieurs phases, l'émetteur encode son message
+	(mots, signaux électriques, ...) qui est envoyé au travers d'un canal (câble
+	électrique, onde radio, ...) puis réceptionnée et décodé par le récepteur.
+
+	\begin{figure}[h!]\centering
+		\begin{tikzpicture}[node distance=3cm]
+			\node (sender)   [rect]                              {Émetteur};
+			\node (receiver) [rect, right of=sender, xshift=5cm] {Récepteur};
+			\node (encode)   [trap, below of=sender]             {Encodage};
+			\node (decode)   [trap, below of=receiver]           {Décodage};
+
+			\draw [arrow] (sender) --                            (encode);
+			\draw [arrow] (encode) -- node[anchor=south] {Canal} (decode);
+			\draw [arrow] (decode) --                            (receiver);
+		\end{tikzpicture}
+		\caption{Un schéma abstrait de la transmission de données}
+		\label{fig:schema}
+	\end{figure}
+
+	La principale problématique dans la transmission de données est de trouver une
+	façon d'encoder les messages de façon à détecter et/ou corriger les erreurs qui
+	peuvent se produire. La redondance est l'une des solutions à ce problème,
+	les techniques utilisant ce principe sont appelées code correcteur d'erreurs.
+
+	Nous allons étudier les codes correcteurs en général, puis nous verrons les sommes
+	de contrôle et le codage de Hamming deux codes correcteurs, nous finirons par
+	voir deux applications du codage de Hamming.
+
+	\section{Code correcteur}
+
+	Un code correcteur est une technique de codage qui permet de détecter et si possible de corriger les erreurs de transmission d’une information sur un canal de communication. Ce codage repose sur la redondance et consiste à ajouter des données dans l’information afin de le transmettre correctement.\\
+	Quand l’information transmit est numérique (message binaire), il est possible d’introduire dans le message des bits de contrôle appelé bit de parités. Il existe plusieurs types de parité tels que la parité simple, la parité double.
+
+	\subsection{Code de parité simple}
+	Le contrôle de parité est un code permettant de détecter si le message transmit est valide. Pour cela, un bit de parité est ajouté au message de sorte que la somme de tous les bits du message soit paire dans le cas d’une parité paire et impaire pour une parité impaire.\\
+	Ce code permet uniquement de détecter un nombre impair d’erreur, en effet s’il y a deux erreurs, les effets s’annulent.
+
+	\paragraph{Exemple}
+	Soit le message 1001011.
+	\begin{itemize}
+		\item Si la parité est paire, le bit de parité vaut \textbf{0},
+		\item Si la parité est impaire alors il vaut \textbf{1}.
+	\end{itemize}
+	Ainsi, dans le cas d’une parité paire, si le message reçu est \textbf{1}1001011 alors le code détecte qu’il y a une erreur dans le message reçu.
+
+	\subsection{Code de parité double ou parité croisée}
+	Le contrôle de parité double est obtenu en effectuant deux contrôle de parité simple.
+	Soit un tableau contenant le message où chaque caractère est codé sur une ligne du tableau, faire :
+	\begin{itemize}
+		\item un contrôle de parité sur chaque ligne appelé contrôle de parité transversal ou VRC « \textit{Vertical Redundancy Checking} ».
+		\item un contrôle de parité sur chaque colonne appelé contrôle de parité longitudinal ou LRC « \textit{Longitudinal Redundancy Checking} ».
+	\end{itemize}
+	Ce code peut détecter et corriger une erreur simple.
+
+	\paragraph{Exemple}
+	Soit un contrôle de parité paire.\\
+	Le message envoyé est \textbf{0111101} \textbf{0}0110011 \textbf{1}0111000 \textbf{0}0110110. \\
+	Le message reçu est \textbf{0111101} \textbf{0}0110011 \textbf{1}0111000 \textbf{0}0100110 .\\
+	Le code détecte une erreur sur le $3^{e}$ bit du $3^{e}$ caractère et la corrige, ce qui donne \textbf{0}01\textcolor{red}{\textbf{1}}0110.
+
+	\begin{center}
+		\begin{tabular}{|m{2.8cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{0.7cm}<{\centering}|m{2.8cm}<{\centering}|m{1.2cm}<{\centering}|}
+			\hline
+			 & \multicolumn{7}{c|}{Message reçu} & Bit de parité & VRC \\
+			\hline
+			 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & \textcolor{ForestGreen}{\ding{51}} \\
+	 		\hline
+	 		 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & \textcolor{ForestGreen}{\ding{51}} \\
+	 		\hline
+	 		 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & \textcolor{red}{\ding{55}} \\
+	 		\hline
+	 		Bit de parité & 0 & 1 & 1 & 1 & 1 & 0 & 1 & & \\
+	 		\hline
+	 		LRC & \textcolor{ForestGreen}{\ding{51}} & \textcolor{ForestGreen}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{ForestGreen}{\ding{51}} & \textcolor{ForestGreen}{\ding{51}} & \textcolor{ForestGreen}{\ding{51}} & \textcolor{ForestGreen}{\ding{51}} & & \\
+	 		\hline
+		\end{tabular}
+	\end{center}
+
+	\section{Somme de contrôle}
+		\subsection{Définition}
+		Une somme de contrôle est calculée à partir de données grâce a une fonction de
+		hachage. On va d'abord définir l'alphabet sur lequel sont encodé les données,
+		dans notre cas il s'agit de l'ensemble
+		$\mathbb{B}=\{0,1\}$ et
+		$\mathbb{B}^* = \{0, 1, 00, 01, 10, 11,...\}$
+		l'ensemble des mots binaires, autrement dit tous les mots qui peuvent être
+		générés à partir de 0 et de 1. Une fonction de hachage $h: \mathbb{B}^* \to \mathbb{B}^*$
+		prend en entrée des données et renvoie leur somme de contrôle, autrement appelé hash.\\
+
+		Lors de la transmission de données une somme de contrôle peut être généré et
+		envoyer avec les données, à la réception une nouvelle somme de contrôle des
+		données est générée et est comparée avec celle reçues, dans le cas où les sommes
+		de contrôle sont différentes alors une nouvelle demande et faite à l'émetteur - il
+		y a eu des erreurs lors de la transmission, les données sont alors redemandées.
+
+		\subsection{Utilisation}
+		Une des principales applications des sommes de contrôle sont les bits de parité.
+		Soit $M \in \mathbb{B}^*$ un message binaire, et $b$ un bit de parité calculé à
+		partir de $M$, on a $b=(\sum_{i \in M}i) \ mod \ {2}$ qui vaut 1 si le nombre de bits
+		est impaire et 0 s'il est pair.
+		Par exemple:
+		\begin{itemize}
+			\item Soit le message $M=01011$ alors on a $b=(0+1+0+1+1) \pmod{2}=1$
+			\item Soit le message $M=01010$ alors on a $b=(0+1+0+1+0) \pmod{2}=0$
+		\end{itemize}
+
+	\section{Code de Hamming}
+	Le code de Hamming est un code autocorrecteur qui repose sur des tests de parités. Chaque bit du message est contrôlé par au moins deux bits de contrôles.
+	Pour savoir quels bits de messages sont contrôlés par chaque bit de parité, il suffit de faire un ET logique ($\wedge$) sur l’écriture en binaire de leur position.\\
+	Soit $p$ un bit de parité et $m$ un bit de message, si $p \wedge m = p$ alors $m$ est contrôlé par $p$.\\ Par exemple,
+	\begin{itemize}
+		\item $0001 \wedge 0011 = 0001$ donc le premier bit de parité contrôle le premier bit de message.
+		\item $0010 \wedge 0011 = 0010$ donc le deuxième bit de parité contrôle aussi le premier bit de message.
+	\end{itemize}
+	\begin{center}
+		\begin{tabular}{|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|m{1.5cm}<{\centering}|}
+			\hline
+			1 & 2 & 3 & 4 & 5 & 6 & 7 & ... \\
+			\hline
+			000\textbf{\textcolor{red}{1}} & 0010 & 001\textbf{\textcolor{ForestGreen}{1}} & 0100 & 010\textbf{\textcolor{ForestGreen}{1}} & 0110 & 011\textbf{\textcolor{ForestGreen}{1}} & ... \\
+			\hline
+			0001 & 00\textbf{\textcolor{red}{1}}0 & 00\textbf{\textcolor{ForestGreen}{1}}1 & 0100 & 0101 & 01\textbf{\textcolor{ForestGreen}{1}}0 & 01\textbf{\textcolor{ForestGreen}{1}}1 & ... \\
+			\hline
+		\end{tabular}
+	\end{center}
+
+    \subsection{Notions importantes}
+    \subsubsection{Encoder un ensemble}
+    Le nombre de bits nécessaire pour encoder un ensemble de mots $M$ est $2^k$ tel que $|M| \leq 2^k$.\\
+    Soit $m$ le nombre de bits dans le message transmis et $k$ le nombre de bits de contrôles de parités,
+	\begin{center}
+		$m + k \leq  2^k $
+	\end{center}
+	Soit $n$ le nombre de bits dans le message encodé, pour avoir un code à redondance minimale, il faudra choisir $n = 2^k - 1$. En effet, le dernier bit de contrôle n'est pas utile s'il ne contrôle aucun bit de message.
+	\paragraph{Exemple} Soit $m$ un mot de longueur 11, la puissance de 2 la plus proche et supérieure ou égale à 11 est $2^4$ et $2^4- 1 = 15$, donc le mot sera encodé sur 15 bits dont 4 bits de contrôles.
+
+	\subsubsection{Poids de Hamming}
+	Le poids de Hamming $w_H$ correspond au nombre de bits différents de 0.
+	\paragraph{Exemple} Soit un mot $x = 1001110$ alors $w_H(x)= 4$.
+
+	\subsubsection{Distance de Hamming}
+	La distance de Hamming $d_H$ correspond au nombre de bits différents entre deux mots d'un code.
+	\paragraph{Exemple} Soit 1001 et 1100 deux mots alors $d_H(1001, 1100) = 2$.\\
+
+	La distance minimal $d_{min}$ correspond à la plus petite distance de Hamming entre tous les mots du code.
+	\begin{center}
+		$d_{min} (C) = min \{ d_H (u, v) : u \neq v \in C \} $
+	\end{center}
+	\paragraph{Exemple}
+	Soit un code $C = \{00000000, 11110000, 00001111, 11111111\}$ alors
+	\begin{itemize}
+		\item $d_H(00000000, 11110000) = 4$
+		\item $d_H(00000000, 00001111) = 4$
+		\item $d_H(00000000, 11111111) = 8$
+		\item $d_H(11110000, 00001111) = 8$
+		\item $d_H(11110000, 11111111) = 4$
+		\item $d_H(00001111, 11111111) = 4$
+	\end{itemize}
+	Ainsi, $d_{min}(C) = 4$.\\
+
+	La distance minimale indique le nombre d'erreurs qui peuvent être détectées et corrigées.
+	\begin{itemize}
+		\item Si $d_{min} = k + 1$ alors le code peut détecter k erreurs.
+		\item Si $d_{min} = 2k + 1 $ alors le code peut corriger k erreurs.\\
+	\end{itemize}
+
+	\paragraph{Remarque} On peut noter une relation entre la distance et le poids de Hamming:
+	\begin{center}
+		$d_H (x, y) = w_H(x \oplus y) $ \\
+		$w_H(x) = d_H (x, \underline{0} ) $
+	\end{center}
+	Soit un  code $C = \{000, 111\}$, la distance est $d_H(000, 111) = 3$.
+	Puisqu’il n’y a que deux mots dans le code $C$, la distance minimale vaut aussi 3.\\
+
+	D'après la page \textit{Wikipedia} sur le \textit{Code de Hamming}, << un code de Hamming est un code linéaire parfait de distance minimale égale à trois >>. \\
+
+
+	\subsection{Code de Hamming (7, 4)}
+	Le code de Hamming (7, 4) encode des mots de 4 bits en mots de 7 bits et peut corriger une erreur.
+
+	\paragraph{Exemple de codage}
+	Soit 0110 le message à transmettre, l’encodage de ce message avec le code Hamming à parité paire est : \\
+	$p_{1} : m_{1} \oplus m_{2} \oplus m_{4} = 0 \oplus 1 \oplus 0 = 1 \rightarrow p_{1} = 1$ \\
+	$p_{2} : m_{1} \oplus m_{3} \oplus m_{4} = 0 \oplus 1 \oplus 0 = 1 \rightarrow p_{2} = 1$ \\
+	$p_{3} : m_{2} \oplus m_{3} \oplus m_{4} = 1 \oplus 1 \oplus 0 = 0 \rightarrow p_{3} = 0$
+
+	\begin{center}
+		\begin{tabular}{|m{3cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|m{1.2cm}<{\centering}|}
+			\hline
+			Position & 7 & 6 & 5 & 4 & 3 & 2 & 1 \\
+			\hline
+			Type de bit & $m_{4}$ & $m_{3}$ & $m_{2}$ & $p_{3}$ & $m_{1}$ & $p_{2}$ & $p_{1}$ \\
+			\hline
+			Valeur du bit & 0 & 1 & 1 & 0 & 0 & 1 & 1 \\
+			\hline
+		\end{tabular}
+	\end{center}
+
+	\paragraph{Exemple de décodage}
+	Soit 0110110 le message reçu, le décodage donne :\\
+	$p_{1} : m_{1} \oplus m_{2} \oplus m_{4} = 1 \oplus 1 \oplus 0 = 0$, or $p_{1} = 1 \Longrightarrow$ erreur détectée \\
+	$p_{2} : m_{1} \oplus m_{3} \oplus m_{4} = 1 \oplus 1 \oplus 0 = 0$, or $p_{2} = 1 \Longrightarrow$ erreur détectée \\
+	$p_{3} : m_{2} \oplus m_{3} \oplus m_{4} = 1 \oplus 1 \oplus 0 = 0 \rightarrow p_{3} = 0 \Longrightarrow$ pas d’erreur détectée \\
+	\textbf{Correction du message} : Les seuls bits de message qui sont contrôlé par $p_{1}$ et $p_{2}$ sont $m_{1}$ et $m_{4}$. Or $m_{4}$ est également contrôlé par $p_{3}$ qui ne détecte pas d’erreur. Donc l’erreur provient de $m_{1}$.
+
+	\subsection{Code de Hamming (15, 11)}
+	Le code de Hamming (15, 11) encode des mots de 11 bits en mots de 15 bits et peut corriger une erreur.
+	\paragraph{Exemple de codage} Soit 1001 0100 110 le message à transmettre, l’encodage de ce message avec le code Hamming à parité impaire est : \\
+	$p_{1} : m_{1} \oplus m_{2} \oplus m_{4} \oplus m_{5} \oplus m_{7} \oplus m_{9} \oplus m_{11} = 0 \oplus 1 \oplus 0 \oplus 0 \oplus 0 \oplus 0 \oplus 1 = 0 \rightarrow p_{1} = 1$ \\
+	$p_{2} : m_{1} \oplus m_{3} \oplus m_{4} \oplus m_{6} \oplus m_{7} \oplus m_{10} \oplus m_{11} = 0 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 1 \rightarrow p_{2} = 0$ \\
+	$p_{3} : m_{2} \oplus m_{3} \oplus m_{4} \oplus m_{8} \oplus m_{9} \oplus m_{10} \oplus m_{11} = 1 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 0 \rightarrow p_{3} = 1$ \\
+	$p_{4} : m_{5} \oplus m_{6} \oplus m_{7} \oplus m_{8} \oplus m_{9} \oplus m_{10} \oplus m_{11} = 0 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 1 \rightarrow p_{4} = 0$
+
+	\begin{center}
+		\begin{tabular}{|m{1.7cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|m{0.5cm}<{\centering}|}
+			\hline
+			Position & 15 & 14 & 13 & 12 & 11 & 10 & 9 & 8 & 7 & 6 & 5 & 4 & 3 & 2 & 1 \\
+			\hline
+			Type & $m_{11}$ & $m_{10}$ & $m_{9}$ & $m_{8}$ & $m_{7}$ & $m_{6}$ & $m_{5}$ & $p_{4}$ & $m_{4}$ & $m_{3}$ & $m_{2}$ & $p_{3}$ & $m_{1}$ & $p_{2}$ & $p_{1}$ \\
+			\hline
+			Valeur & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\paragraph{Exemple de décodage} Soit 100101100111001 le message reçu, le décodage est : \\
+	{\small $p_{1} : m_{1} \oplus m_{2} \oplus m_{4} \oplus m_{5} \oplus m_{7} \oplus m_{9} \oplus m_{11} = 0 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 1$}, or $p_{1} = 1 \Longrightarrow$ erreur détectée \\
+	{\small $p_{2} : m_{1} \oplus m_{3} \oplus m_{4} \oplus m_{6} \oplus m_{7} \oplus m_{10} \oplus m_{11} = 0 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 1$} $\rightarrow p_{2} = 0 \Longrightarrow$ pas d’erreur \\
+	{\small $p_{3} : m_{2} \oplus m_{3} \oplus m_{4} \oplus m_{8} \oplus m_{9} \oplus m_{10} \oplus m_{11} = 1 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 0 \rightarrow p_{3} = 1$} $\Longrightarrow$ pas d’erreur \\
+	{\small $p_{4} : m_{5} \oplus m_{6} \oplus m_{7} \oplus m_{8} \oplus m_{9} \oplus m_{10} \oplus m_{11} = 1 \oplus 1 \oplus 0 \oplus 1 \oplus 0 \oplus 0 \oplus 1 = 0$}, or $p_{4} = 0 \Longrightarrow$ erreur détectée \\
+	\textbf{Correction du message} : Parmi les bits de message contrôlés par $p_{1}$ et $p_{4}$, les bits $m_{5}$, $m_{7}$, $m_{9}$ et $m_{11}$ sont en commun. Or, $m_{7}$, $m_{9}$ et $m_{11}$ sont aussi contrôlés par $p_{2}$ et $p_{3}$ qui ne détectent pas d’erreur. Ainsi l’erreur est produite par le bit $m_{5}$.
+
+	\section{Conclusion}
+		Nous espérons avoir éveillé une curiosité avec cette courte introduction au vaste domaine	de la
+		théorie des codes. Il existe de nombreux autres codages pour la compression, le cryptage et la
+		correction de données, si vous voulez aller plus loin, nous vous recommandons le livre \textit{Théorie
+		des codes} \cite{TheorieDesCodes}.
+
+	\appendix % Change la numérotation des sections
+	\section{Annexe}
+		Nous vous mettons à disposition deux programmes, un pour encoder un texte
+		en un code de Hamming et inversement, un jeu où il faut retrouver l'erreur
+		dans un code de Hamming.
+
+		L'article a été entièrement rédiger au format \LaTeX et les programmes sont
+		rédigés en Python, vous pouvez retrouver toutes les sources sur le dépôt ci-dessous:
+
+		\href{https://gaufre.informatique.univ-paris-diderot.fr/hammouho/md5-article}{https://gaufre.informatique.univ-paris-diderot.fr/hammouho/md5-article}
+
+	\section{Références}
+	\begingroup
+	\nocite{*}
+	\bibliographystyle{plain}
+	\renewcommand{\section}[2]{}
+	\bibliography{article}
+	\endgroup
+
+\end{document}
